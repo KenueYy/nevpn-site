@@ -23,7 +23,7 @@ services:
     image: redis:7-alpine
     container_name: nevpn-redis
     ports:
-      - "6379:6379"
+      - "6378:6379"
     volumes:
       - redis_data:/data
     healthcheck:
