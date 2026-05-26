@@ -1,0 +1,9 @@
+[submodule "frontend"]
+	path = frontend
+	url = https://github.com/KenueYy/nevpn-site-frontend
+[submodule "nevpn-site-backend"]
+	path = nevpn-site-backend
+	url = https://github.com/KenueYy/nevpn-site-backend
+[submodule "smtp-service"]
+	path = smtp-service
+	url = https://github.com/KenueYy/smtp-service

@@ -1,0 +1,80 @@
+name: nevpn
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: nevpn-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: nevpn
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nevpn"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: nevpn-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  smtp:
+    build:
+      context: ./smtp-service
+      dockerfile: Dockerfile
+    container_name: nevpn-smtp
+    env_file:
+      - ./.env.smtp
+    ports:
+      - "4444:4444"
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./nevpn-site-backend
+      dockerfile: Dockerfile
+    container_name: nevpn-backend
+    env_file:
+      - ./.env.backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      smtp:
+        condition: service_started
+    ports:
+      - "7080:7080"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: nevpn-frontend
+    env_file:
+      - ./.env.frontend
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
